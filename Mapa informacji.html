@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mingəçevir Xəritəsi</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/css/ol.css"
+      type="text/css"
+    />
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/build/ol.js"></script>
+    <style>
+      .map {
+        height: 500px;
+        width: 100%;
+      }
+      /* Popup stili */
+      .ol-popup {
+        position: absolute;
+        background-color: white;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -50px;
+        min-width: 150px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <div id="popup" class="ol-popup"><div id="popup-content"></div></div>
+
+    <script type="text/javascript">
+      var myData = [
+        [40.768194, 47.049808, "Mingəçevir Dövlət Dram Teatrı"],
+        [40.76395, 47.05953, "Heydər Əliyev Mərkəzi"],
+      ];
+
+      var container = document.getElementById("popup");
+      var content = document.getElementById("popup-content");
+      var overlay = new ol.Overlay({ element: container, autoPan: true });
+
+      var map = new ol.Map({
+        target: "map",
+        overlays: [overlay],
+        layers: [new ol.layer.Tile({ source: new ol.source.OSM() })],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([47.052389, 40.7646918]),
+          zoom: 14,
+        }),
+      });
+
+      var vectorSource = new ol.source.Vector();
+      map.addLayer(new ol.layer.Vector({ source: vectorSource }));
+
+      for (var i = 0; i < myData.length; i++) {
+        var marker = new ol.Feature({
+          geometry: new ol.geom.Point(
+            ol.proj.fromLonLat([myData[i][1], myData[i][0]])
+          ),
+          name: myData[i][2], // Adı bura əlavə etdik
+        });
+        marker.setStyle(
+          new ol.style.Style({
+            image: new ol.style.Icon({
+              src: "https://cdn.mapmarker.io/api/v1/font-awesome/v5/pin?icon=fa-info&color=DC3545&size=40",
+            }),
+          })
+        );
+        vectorSource.addFeature(marker);
+      }
+
+      map.on("singleclick", function (evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function (f) {
+          return f;
+        });
+        if (feature) {
+          content.innerHTML = feature.get("name");
+          overlay.setPosition(evt.coordinate);
+        } else {
+          overlay.setPosition(undefined);
+        }
+      });
+    </script>
+  </body>
+</html>
